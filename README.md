@@ -6,11 +6,17 @@
 
 ## 当前阶段
 
-第一阶段：已建立 Skill 入口、原文依据规则、持久记录格式和基本交互流程。详细教学流程和持久化自动化尚待后续迭代；当前保存流程由具备文件读写能力的助手执行。
+第二阶段：已在基础入口、来源规则和记录模板之上，细化文本理解方法、随读答疑与读后逐段讲解。解释需要区分文本明示、助手重建和仍不确定之处；理解检查以原文为依据，允许有根据的不同读法。
+
+当前保存流程由具备文件读写能力的助手执行。持久化辅助程序、完整的理解追踪流程和总结文档流程仍待后续迭代；方法规则不保证每次解释正确。
 
 - [Skill 入口](skills/classic-reading-companion/SKILL.md)
 - [原文来源与定位](skills/classic-reading-companion/references/source-rules.md)
+- [怎样从原文形成解释](skills/classic-reading-companion/references/reading-method.md)
+- [随读答疑与逐段讲解流程](skills/classic-reading-companion/references/reading-workflows.md)
 - [记录格式与保存、续读规则](skills/classic-reading-companion/references/record-schema.md)
+
+维护时可使用 [第二阶段情境检查](evaluations/stage-2-reading-cases.md)。其中区分静态规则审阅与实际模型运行，不把格式检查称为教学效果验证。
 
 ## 使用约定
 
@@ -24,9 +30,8 @@
 
 ## 后续顺序
 
-1. 随读答疑与读后逐段讲解：细化范围识别、概念解释、论证拆解和多段处理。
-2. 理解检查与追踪：细化反馈证据、问题分类和重新打开问题的条件。
-3. 持久保存与续读：完善保存辅助工具、失败恢复和实际续读验证。
-4. 章节复盘与全书总结：基于实际覆盖范围和学习记录生成 Markdown 文档。
+1. 理解检查与追踪：细化反馈证据、问题分类和重新打开问题的条件。
+2. 持久保存与续读：完善保存辅助工具、失败恢复和实际续读验证。
+3. 章节复盘与全书总结：基于实际覆盖范围和学习记录生成 Markdown 文档。
 
 第一版不以知识图谱或自动文献搜集为前提。

@@ -80,6 +80,7 @@
 ```
 
 - `question_verbatim` 保留首次问题原话。无显式问句但用户要求记录某点时，保留其原话。
+- 由助手主动发起理解检查而形成的条目，`question_verbatim` 可以为空；助手的问题写入 `checks.question`，`history` 明确标注检查来源，不把它列入“用户问过的问题”。原话缺失不允许由助手补写。
 - `question_types` 可多选：`概念不清`、`论证断点`、`背景不足`、`理解偏差`、`延伸探究`、`解释争议`。证据不足留空。分类依据放在 `classification_basis`；判为理解偏差须有用户实际表达及原文依据。
 - `understanding_at_time` 是用户实际说过的当时理解，未表达留空。
 - `explanations` 每项含 `id`、`at`、`text`、`evidence`、`uncertainties`。`evidence` 每项含 `location`、`quote`（无直接引文时为空）、`paraphrase`、`source_locator`、`verification_status`。外部背景需有自己的真实来源，不能借用原文位置作证。
@@ -87,6 +88,7 @@
 - `checks` 每项含 `id`、`asked_at`、`question`、`user_answer`、`answered_at`、`feedback`、`evidence`、`result`。`result` 可为 `待回答`、`通过`、`需修正`、`已跳过`、`无法判定`。没有实际回答时，`user_answer` 为 `null`，不能判通过。
 - `follow_up_actions` 使用进度中的行动结构，可指向重读、补背景或文本比较；不自动执行用户未要求的延伸研究。
 - `history` 追加事件：`id`、`at`、`kind`、`user_verbatim`、`before`、`after`、`basis`。追问、分类更正、状态变化和重新打开问题均保留，不只留最终结论。
+- 助手纠正自己时，追加 `kind` 为 `assistant_correction` 的事件，`basis` 给出更正依据并指向被修正的解释或检查 ID；`user_verbatim` 仅在用户实际说过相关话时填写。新解释追加到 `explanations`，不删除旧解释；依赖旧解释的评价必须复核，不能据此推定用户已经修正或原先能力不足。
 
 ### 状态与回应分开
 
