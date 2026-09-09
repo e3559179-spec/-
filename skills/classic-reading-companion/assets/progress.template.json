@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "book_id": null,
+  "save_id": null,
+  "previous_save_id": null,
+  "book": {
+    "title": null,
+    "author": null,
+    "translator": null,
+    "edition": null,
+    "publication": null,
+    "metadata_evidence": [],
+    "unverified_fields": []
+  },
+  "sources": [],
+  "reading_goal": {
+    "primary": "理解原著",
+    "optional_topic": null
+  },
+  "current_source_id": null,
+  "current_requested_range": null,
+  "user_confirmed_read_position": null,
+  "last_explained_position": null,
+  "next_position": null,
+  "coverage": [],
+  "recent_session_summary": {
+    "user_confirmed_scope": null,
+    "explained_scope": null,
+    "key_record_ids": [],
+    "unresolved_record_ids": [],
+    "resume_hint": null
+  },
+  "pending_actions": [],
+  "progress_history": [],
+  "updated_at": null
+}

@@ -1,0 +1,4 @@
+# Personal reading state; templates under assets remain tracked.
+reading-data/
+__pycache__/
+*.pyc

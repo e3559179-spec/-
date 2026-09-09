@@ -1,0 +1,4 @@
+interface:
+  display_name: "经典原著伴读与理解追踪"
+  short_description: "随读答疑、逐段讲解与理解检查，保存阅读进度和疑问，积累复盘材料"
+  default_prompt: "请使用 $classic-reading-companion 陪我阅读当前原著，先核对原文来源和已有进度，按我的问题进行答疑。"
