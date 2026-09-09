@@ -6,17 +6,31 @@
 
 ## 当前阶段
 
-第二阶段：已在基础入口、来源规则和记录模板之上，细化文本理解方法、随读答疑与读后逐段讲解。解释需要区分文本明示、助手重建和仍不确定之处；理解检查以原文为依据，允许有根据的不同读法。
+第三阶段：已完善理解检查、依据原文反馈、问题分类、理解变化记录和状态复核。单独记录回应、实际表达及检查结果；跳过不等于失败，助手误读不归为用户偏差。新增只读校验工具，检查通过状态是否有实际回答、反馈与文本依据支撑。
 
-当前保存流程由具备文件读写能力的助手执行。持久化辅助程序、完整的理解追踪流程和总结文档流程仍待后续迭代；方法规则不保证每次解释正确。
+当前保存流程由具备文件读写能力的助手执行。持久化辅助程序和总结文档流程仍待后续迭代；方法规则及结构校验均不能证明每次解释或理解评价正确。
 
 - [Skill 入口](skills/classic-reading-companion/SKILL.md)
 - [原文来源与定位](skills/classic-reading-companion/references/source-rules.md)
 - [怎样从原文形成解释](skills/classic-reading-companion/references/reading-method.md)
 - [随读答疑与逐段讲解流程](skills/classic-reading-companion/references/reading-workflows.md)
+- [理解检查与理解变化追踪](skills/classic-reading-companion/references/understanding-workflow.md)
 - [记录格式与保存、续读规则](skills/classic-reading-companion/references/record-schema.md)
 
-维护时可使用 [第二阶段情境检查](evaluations/stage-2-reading-cases.md)。其中区分静态规则审阅与实际模型运行，不把格式检查称为教学效果验证。
+维护时可使用 [第二阶段情境检查](evaluations/stage-2-reading-cases.md) 和 [第三阶段情境检查](evaluations/stage-3-understanding-cases.md)。其中区分静态规则审阅、程序测试和实际模型运行，不把格式检查称为教学效果验证。
+
+## 记录校验
+
+[校验工具](skills/classic-reading-companion/scripts/validate_tracking.py) 只依赖 Python 3 标准库，不修改输入文件。从仓库根目录运行：
+
+```sh
+python skills/classic-reading-companion/scripts/validate_tracking.py "reading-data/<book-id>/understanding.json"
+python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+将示例路径中的 `<book-id>` 替换为实际目录名。支持 `--json` 输出错误和提醒；返回码 0 表示所检查约束满足，1 表示约束失败，2 表示无法读取有效 JSON。它不是完整 JSON Schema 校验器，不能核验原文或用户表达真实性，也不能判断论证是否成立。旧格式信息不足时会提醒核对，不自动补写历史。
+
+测试使用虚构记录和隔离临时目录，不读写个人阅读数据。第三阶段的 19 项程序测试已通过；独立模型行为和跨会话保存恢复尚未测试。
 
 ## 使用约定
 
@@ -30,8 +44,7 @@
 
 ## 后续顺序
 
-1. 理解检查与追踪：细化反馈证据、问题分类和重新打开问题的条件。
-2. 持久保存与续读：完善保存辅助工具、失败恢复和实际续读验证。
-3. 章节复盘与全书总结：基于实际覆盖范围和学习记录生成 Markdown 文档。
+1. 持久保存与续读：完善保存辅助工具、失败恢复和实际续读验证。
+2. 章节复盘与全书总结：基于实际覆盖范围和学习记录生成 Markdown 文档。
 
 第一版不以知识图谱或自动文献搜集为前提。

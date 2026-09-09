@@ -12,6 +12,7 @@
 
 - 使用 UTF-8 JSON。未知值为 `null`，无条目为 `[]`；不使用“已理解”等词代替缺失证据。时间使用带时区的 ISO 8601，实际获取时间，不虚构时间戳。
 - `schema_version` 当前为整数 `1`。遇到不支持的版本时保留原文件，说明需要兼容处理，不直接覆盖。
+- 第三阶段增加可选字段 `knowledge_point`、`status_check_ids`、`check_preference` 及检查详情，仍兼容版本 1。新增记录按完整约定写入；旧记录缺失时保留未知，不凭空补证据。校验工具会提示部分旧格式的证据关联不足，不自动迁移文件。
 - 两份文件的 `book_id`、`schema_version`、`save_id`、`previous_save_id` 必须一致。每次保存使用新的唯一 `save_id`，并将旧 ID 写入 `previous_save_id`。它们用于识别跨文件未完成的保存，不是理解证据。
 - 既有记录 ID 稳定；同一知识点的追问追加到该记录，独立知识点另建条目。不因位置相近就合并不同问题，不覆盖用户原话和旧解释。
 - 引用用户表达时尽量保留原句；摘要与原话分字段。对话没有稳定链接时使用本地事件 ID，不编造消息 URL。
@@ -42,6 +43,7 @@
 | `sources` | 每项含稳定 `id`、`kind`（`file` / `url` / `user_text`）、`locator`、`verification_status`、`verified_scope`、`verified_at`、`limitations`。`locator` 是真实路径、URL 或可确认的会话来源说明，范围以文字或范围对象记录。 |
 | `reading_goal` | 默认主要目标为理解原著，可选专题来自用户表达。 |
 | `current_source_id` | 当前使用的来源 ID，非空时必须能在 `sources` 中找到。 |
+| `check_preference` | `适时检查` / `暂停主动检查`。旧文件缺失按适时检查运行；变更须依据用户明确偏好并记入进度历史。暂停不阻止用户临时主动要求检查一次。 |
 | `current_requested_range` | 当前用户要求答疑或讲解的范围，不代表已读或已讲完。 |
 | `user_confirmed_read_position` | 用户明确表示读到的位置；提问和助手讲解不自动推进该字段。 |
 | `last_explained_position` | 最近实际讲解完成的位置，与已读位置分开。 |
@@ -62,6 +64,7 @@
 {
   "id": null,
   "location": null,
+  "knowledge_point": null,
   "question_verbatim": null,
   "question_types": [],
   "classification_basis": null,
@@ -70,6 +73,7 @@
   "understanding_changes": [],
   "checks": [],
   "current_status": "待解决",
+  "status_check_ids": [],
   "check_applicability": "待判断",
   "response_status": "待回应",
   "follow_up_actions": [],
@@ -83,9 +87,14 @@
 - 由助手主动发起理解检查而形成的条目，`question_verbatim` 可以为空；助手的问题写入 `checks.question`，`history` 明确标注检查来源，不把它列入“用户问过的问题”。原话缺失不允许由助手补写。
 - `question_types` 可多选：`概念不清`、`论证断点`、`背景不足`、`理解偏差`、`延伸探究`、`解释争议`。证据不足留空。分类依据放在 `classification_basis`；判为理解偏差须有用户实际表达及原文依据。
 - `understanding_at_time` 是用户实际说过的当时理解，未表达留空。
+- `knowledge_point` 为本条追踪的具体概念、条件或论证关系；新条目应写明，旧记录无法确定时保留为空。`status_check_ids` 列支撑当前已通过状态的检查 ID；其他状态使用空数组，历史关联保留在 `history`。新写入的已通过状态必须有有效通过检查的关联。
 - `explanations` 每项含 `id`、`at`、`text`、`evidence`、`uncertainties`。`evidence` 每项含 `location`、`quote`（无直接引文时为空）、`paraphrase`、`source_locator`、`verification_status`。外部背景需有自己的真实来源，不能借用原文位置作证。
 - `understanding_changes` 每项含 `at`、`user_verbatim`、`assistant_assessment`、`evidence`。用户的变化与助手的评价分开；不要将助手讲解抄作用户的理解。
 - `checks` 每项含 `id`、`asked_at`、`question`、`user_answer`、`answered_at`、`feedback`、`evidence`、`result`。`result` 可为 `待回答`、`通过`、`需修正`、`已跳过`、`无法判定`。没有实际回答时，`user_answer` 为 `null`，不能判通过。
+- 新检查另写 `kind`（`提问检查` / `表达评估`）、`target`（一个具体检查目标）、`assessed_at`、`support`（`无本轮定向提示` / `定向提示后` / `示范答案后` / `不明`）、`validity`（`有效` / `待复核` / `已撤回`）及可空的 `supersedes_check_id`。旧条目缺失 `validity` 先按有效历史记录读取，但不等于已经完成原文复核；缺失支持条件按不明读取。
+- `表达评估` 用于用户主动提供的理解，允许 `question`、`asked_at` 为空，仍保存其原话、实际评价时间及证据。`提问检查` 保存实际提出的问题。`assessed_at` 是评价时间；不能把当前时间伪装成早期未知回答的时间。
+- `feedback` 保留对实际回答的评价及其范围；无实际回答时不能填入虚构评价。`evidence` 为非空依据列表时，每项使用解释依据对象结构，至少有非空的原文位置或实际来源定位，并包含短引文或对应转述。只是列一个空位置对象不构成依据。
+- 每次新的作答用新检查 ID；再次评估同一份旧回答也新增检查，并用 `supersedes_check_id` 关联旧评价，在历史中说明缘由。旧评价若判断有误可撤回；用户后来答错不使当时正确的评价自动变成无效。
 - `follow_up_actions` 使用进度中的行动结构，可指向重读、补背景或文本比较；不自动执行用户未要求的延伸研究。
 - `history` 追加事件：`id`、`at`、`kind`、`user_verbatim`、`before`、`after`、`basis`。追问、分类更正、状态变化和重新打开问题均保留，不只留最终结论。
 - 助手纠正自己时，追加 `kind` 为 `assistant_correction` 的事件，`basis` 给出更正依据并指向被修正的解释或检查 ID；`user_verbatim` 仅在用户实际说过相关话时填写。新解释追加到 `explanations`，不删除旧解释；依赖旧解释的评价必须复核，不能据此推定用户已经修正或原先能力不足。
@@ -101,6 +110,14 @@
 3. 用户仅说“好的”、未再追问、跳过或停止检查：不进入已通过理解检查；跳过不记录为理解失败。
 4. 延伸探究、价值质疑或无需测验的讨论：可设检查不适用、理解状态为空，另用回应状态表示进展。有文本解释争议时可保留仍有争议，不暗示用户能力不足。
 5. 新表达暴露遗漏，或旧解释被纠正：重新评估相关知识点、更新状态并保留历史；没有新证据时不任意撤销旧检查结果。
+6. 已通过状态只能由实际回答、非空反馈、原文依据及有效通过结果支撑；`status_check_ids` 指向同一记录中的对应检查，不能引用别的知识点。检查被撤回或待复核后不能继续支撑当前通过状态。旧格式缺少关联时仅可定位可能的历史证据，补全关联前须核对，不能凭工具警告自动改判。
+7. 跳过或暂停不改变既有有效通过；新一次检查待回答也不自动否定旧结果。当前同一点出现实际偏差或用户明确仍未理解时，重新打开并清空当前通过关联，保留旧检查和状态历史。
+
+### 只读校验工具
+
+有 Python 3 时，在本 Skill 目录运行 `python scripts/validate_tracking.py <understanding.json路径>`，可用 `--json` 输出结构化结果；路径有空格时加引号。也可使用脚本的绝对路径从其他目录调用。
+
+工具只读取指定文件，不修改、迁移、评估语义或改变进度。退出码 0 表示所检查结构约束满足（仍可能带旧格式提醒），1 表示记录约束失败，2 表示无法读取或 JSON 无效。保存流程在替换正式文件前检查理解记录候选，失败先修复有依据的字段，不删除真实历史以通过校验。没有 Python 时进行人工核对，明确未运行该工具。
 
 ## 保存流程
 
