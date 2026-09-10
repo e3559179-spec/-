@@ -6,9 +6,9 @@
 
 ## 当前阶段
 
-第三阶段：已完善理解检查、依据原文反馈、问题分类、理解变化记录和状态复核。单独记录回应、实际表达及检查结果；跳过不等于失败，助手误读不归为用户偏差。新增只读校验工具，检查通过状态是否有实际回答、反馈与文本依据支撑。
+第四阶段：已实现本地持久保存与续读工具，支持初始化、保存、跨进程读取、旧记录导入、镜像修复和指定快照恢复。保存前检查记录结构和引用，使用文件锁及版本令牌拒绝旧会话覆盖；历史快照与修复前原始文件保留。
 
-当前保存流程由具备文件读写能力的助手执行。持久化辅助程序和总结文档流程仍待后续迭代；方法规则及结构校验均不能证明每次解释或理解评价正确。
+工具需要运行助手主动调用，不会在聊天结束后自行运行，也不自动同步设备。原文解释和用户理解仍需依据文本判断；结构校验与保存成功不能证明教学评价正确。完整的章节复盘和全书总结流程留待下一阶段。
 
 - [Skill 入口](skills/classic-reading-companion/SKILL.md)
 - [原文来源与定位](skills/classic-reading-companion/references/source-rules.md)
@@ -16,8 +16,22 @@
 - [随读答疑与逐段讲解流程](skills/classic-reading-companion/references/reading-workflows.md)
 - [理解检查与理解变化追踪](skills/classic-reading-companion/references/understanding-workflow.md)
 - [记录格式与保存、续读规则](skills/classic-reading-companion/references/record-schema.md)
+- [持久保存与续读工具](skills/classic-reading-companion/references/persistence-workflow.md)
 
 维护时可使用 [第二阶段情境检查](evaluations/stage-2-reading-cases.md) 和 [第三阶段情境检查](evaluations/stage-3-understanding-cases.md)。其中区分静态规则审阅、程序测试和实际模型运行，不把格式检查称为教学效果验证。
+
+## 保存和续读
+
+需要 Python 3，无需额外安装依赖。默认数据位于阅读工作目录，与 Skill 安装目录分开；从仓库根目录可运行：
+
+```sh
+python skills/classic-reading-companion/scripts/reading_store.py init --book-dir "reading-data/my-book-v1" --title "实际书名"
+python skills/classic-reading-companion/scripts/reading_store.py load --book-dir "reading-data/my-book-v1"
+```
+
+助手根据 `load` 返回的完整记录生成候选文件，用当前保存 ID 和状态令牌调用 `save`。详细命令与异常处理见 [操作说明](skills/classic-reading-companion/references/persistence-workflow.md)。不要直接改正式 JSON 镜像，也不要将整个 load 响应作为进度文件。
+
+每次保存先写入完整快照，再更新当前版本指针，最后刷新两份常用 JSON。进程中断后可以从完整快照恢复。手工修改、旧会话或损坏记录不会被静默覆盖；需要先核对或显式恢复。快照不是防止磁盘损坏的外部备份，跨设备续读应取得完整数据目录。
 
 ## 记录校验
 
@@ -30,7 +44,7 @@ python -m unittest discover -s tests -p "test_*.py" -v
 
 将示例路径中的 `<book-id>` 替换为实际目录名。支持 `--json` 输出错误和提醒；返回码 0 表示所检查约束满足，1 表示约束失败，2 表示无法读取有效 JSON。它不是完整 JSON Schema 校验器，不能核验原文或用户表达真实性，也不能判断论证是否成立。旧格式信息不足时会提醒核对，不自动补写历史。
 
-测试使用虚构记录和隔离临时目录，不读写个人阅读数据。第三阶段的 19 项程序测试已通过；独立模型行为和跨会话保存恢复尚未测试。
+测试使用虚构记录和隔离临时目录，不读写个人阅读数据。本阶段累计 40 项程序测试通过，包含独立进程重新读取、进程突然退出、锁冲突、部分写入修复、旧会话拒绝、旧数据导入和快照损坏恢复。测试在 Windows 本地环境运行；没有进行真实聊天会话的端到端伴读、断电或网盘并发测试。
 
 ## 使用约定
 
@@ -38,13 +52,12 @@ python -m unittest discover -s tests -p "test_*.py" -v
 
 开始时提供书名、正在读的原文或文件，以及已知版本信息。可以直接说：“这句话什么意思”“这一段读完了”“检查一下我的理解”“今天读到这里”“继续上次的位置”。
 
-个人阅读数据默认保存在阅读工作目录的 `reading-data/<book-id>/`，与 Skill 安装目录分开。首次使用会告知实际绝对路径；跨对话或设备续读时，需要让运行环境能访问同一数据目录。不能读写文件的环境只能提供待手动保存的记录，不能保证自动续读。
+个人阅读数据默认保存在阅读工作目录的 `reading-data/<book-id>/`，与 Skill 安装目录分开。首次使用会告知实际绝对路径；跨对话或设备续读时，需要让运行环境能访问同一完整数据目录。不能运行保存工具或不能写文件时，只能提供完整候选记录并说明未完成工具保存。
 
 本仓库只分发规则与空白模板，不自动上传个人阅读数据。`.gitignore` 忽略默认 `reading-data/` 目录；用户自定义路径时也应保持个人数据与分发文件分离。
 
 ## 后续顺序
 
-1. 持久保存与续读：完善保存辅助工具、失败恢复和实际续读验证。
-2. 章节复盘与全书总结：基于实际覆盖范围和学习记录生成 Markdown 文档。
+下一阶段：章节复盘与全书总结，基于实际覆盖范围、用户表达和原文依据生成 Markdown 文档。
 
 第一版不以知识图谱或自动文献搜集为前提。

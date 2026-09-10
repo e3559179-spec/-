@@ -13,6 +13,8 @@ description: 辅助马克思主义及其他理论经典原著的细读，提供�
 
 初始化、记录变更、保存、续读或生成复盘时，读取 [记录格式](references/record-schema.md)。模板在 [进度模板](assets/progress.template.json) 和 [理解记录模板](assets/understanding.template.json)；复制到独立数据目录后使用，不将学习数据写回模板。
 
+初始化、保存或恢复阅读时，读取 [持久保存与续读](references/persistence-workflow.md)，优先使用 [reading_store.py](scripts/reading_store.py)。通过工具的完整快照恢复当前版本，再核对实际原文；不要只读可能未刷新完整的两个顶层 JSON。没有可用工具时提供完整待保存记录并如实说明，不声称聊天记忆已经保存进度。
+
 ## 按用户意图响应
 
 随读答疑、读后讲解或核对某种解释时，读取 [文本理解方法](references/reading-method.md) 和 [伴读交互流程](references/reading-workflows.md)。前者规定解释怎样获得依据，后者规定回答范围、详略、停顿与记录方式。只做保存或恢复位置时，不必额外加载这两份文件。
