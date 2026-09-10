@@ -6,9 +6,9 @@
 
 ## 当前阶段
 
-第四阶段：已实现本地持久保存与续读工具，支持初始化、保存、跨进程读取、旧记录导入、镜像修复和指定快照恢复。保存前检查记录结构和引用，使用文件锁及版本令牌拒绝旧会话覆盖；历史快照与修复前原始文件保留。
+第五阶段：已完成章节复盘与全书总结流程，加入两类文档模板、记录依据整理及文稿封存工具。总结区分作者观点、助手解释和用户思考，注明实际覆盖、未检验点与争议，不将读完声明写成已经掌握。
 
-工具需要运行助手主动调用，不会在聊天结束后自行运行，也不自动同步设备。原文解释和用户理解仍需依据文本判断；结构校验与保存成功不能证明教学评价正确。完整的章节复盘和全书总结流程留待下一阶段。
+第一版五项核心能力已形成完整流程：随读答疑、读后讲解、理解追踪、持久保存、复盘与总结。工具需要运行助手主动调用，不会在聊天结束后自行运行，也不自动同步设备。原文解释和文稿内容由助手依据材料撰写和核对；程序测试不证明教学评价或总结内容正确。
 
 - [Skill 入口](skills/classic-reading-companion/SKILL.md)
 - [原文来源与定位](skills/classic-reading-companion/references/source-rules.md)
@@ -17,8 +17,21 @@
 - [理解检查与理解变化追踪](skills/classic-reading-companion/references/understanding-workflow.md)
 - [记录格式与保存、续读规则](skills/classic-reading-companion/references/record-schema.md)
 - [持久保存与续读工具](skills/classic-reading-companion/references/persistence-workflow.md)
+- [章节复盘与全书总结](skills/classic-reading-companion/references/review-workflow.md)
 
-维护时可使用 [第二阶段情境检查](evaluations/stage-2-reading-cases.md) 和 [第三阶段情境检查](evaluations/stage-3-understanding-cases.md)。其中区分静态规则审阅、程序测试和实际模型运行，不把格式检查称为教学效果验证。
+维护时可使用 [第二阶段情境检查](evaluations/stage-2-reading-cases.md)、[第三阶段情境检查](evaluations/stage-3-understanding-cases.md) 和 [总结情境检查](evaluations/stage-5-review-cases.md)。其中区分静态规则审阅、程序测试和实际模型运行，不把格式检查称为教学效果验证。
+
+## 复盘和总结
+
+用户可以直接说“这一章读完了，做个复盘”或“这本书读完了，生成总结文档”。助手先固定实际记录依据，再核对原文、完成撰写和内容审阅，最后封存 Markdown 文稿。提纲和空白模板不作为完成的总结交付。
+
+```sh
+python skills/classic-reading-companion/scripts/review_document.py prepare --book-dir "reading-data/my-book-v1" --kind book
+```
+
+准备工具返回记录包及草稿路径；随后由助手撰写正文，并按 [总结流程](skills/classic-reading-companion/references/review-workflow.md) 调用 `finalize`，在该书 `reports/` 下保存独立版本的文稿、依据记录包和哈希清单。它不会替助手理解原著，不会自动判定正文正确，也不会把未完成的章节补写成已伴读。
+
+报告生成不会改变阅读进度或理解状态，重复生成不覆盖旧文稿；撰写期间记录更新时须重新核对。记录包包含本书完整学习记录，不随正文自动公开到 GitHub。
 
 ## 保存和续读
 
@@ -44,7 +57,7 @@ python -m unittest discover -s tests -p "test_*.py" -v
 
 将示例路径中的 `<book-id>` 替换为实际目录名。支持 `--json` 输出错误和提醒；返回码 0 表示所检查约束满足，1 表示约束失败，2 表示无法读取有效 JSON。它不是完整 JSON Schema 校验器，不能核验原文或用户表达真实性，也不能判断论证是否成立。旧格式信息不足时会提醒核对，不自动补写历史。
 
-测试使用虚构记录和隔离临时目录，不读写个人阅读数据。本阶段累计 40 项程序测试通过，包含独立进程重新读取、进程突然退出、锁冲突、部分写入修复、旧会话拒绝、旧数据导入和快照损坏恢复。测试在 Windows 本地环境运行；没有进行真实聊天会话的端到端伴读、断电或网盘并发测试。
+测试使用虚构记录和隔离临时目录，不读写个人阅读数据。累计 54 项程序测试通过，覆盖记录校验、持久保存与恢复、报告范围筛选、过期/被修改记录包拒绝、草稿与最终文稿区分，以及文稿保存不改变阅读状态。测试在 Windows 本地环境运行；没有进行真实原文伴读的端到端语义评估、断电或网盘并发测试。
 
 ## 使用约定
 
@@ -56,8 +69,8 @@ python -m unittest discover -s tests -p "test_*.py" -v
 
 本仓库只分发规则与空白模板，不自动上传个人阅读数据。`.gitignore` 忽略默认 `reading-data/` 目录；用户自定义路径时也应保持个人数据与分发文件分离。
 
-## 后续顺序
+## 第一版之后
 
-下一阶段：章节复盘与全书总结，基于实际覆盖范围、用户表达和原文依据生成 Markdown 文档。
+五个开发阶段已完成。后续应结合真实原文的小范围试读检查讲解、纠偏和总结质量，再根据实际问题迭代；本仓库中的完成状态不表示已经安装到你的运行环境。
 
 第一版不以知识图谱或自动文献搜集为前提。
